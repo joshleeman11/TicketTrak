@@ -110,7 +110,6 @@ def gameTickets(args):
         driver.get(game_link)
         scroll_and_load(driver)
 
-        # Get page source and parse with BeautifulSoup
         page_source = driver.page_source
         soup = BeautifulSoup(page_source, "html.parser")
         tickets = soup.find("div", id="listings-container")
