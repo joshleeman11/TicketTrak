@@ -184,6 +184,8 @@ def main_route():
                 date = game[2]
                 
                 month, day = date.split()
+                if int(day) < 10:
+                    day = str(day)[1]
                 month_num = month_map[month]
                 if f"{month_num}-{day}-2024" in dates:
                     df.append(fetch_tickets_game(f'https://www.stubhub.com{game[0]}', 1, team, date))
