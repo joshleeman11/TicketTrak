@@ -174,6 +174,7 @@ function App() {
                     <table id="ticketsTable" border="1">
                         <thead>
                             <tr>
+                                <th>Team</th>
                                 <th>Game Date</th>
                                 <th>Section</th>
                                 <th>Row</th>
@@ -185,7 +186,8 @@ function App() {
                         <tbody>
                             {filteredDataframe.map((entry, index) => (
                                 <tr key={index}>
-                                    <td>{entry["Game Date"]}</td>
+                                    <td>{entry["Teams"]}</td>
+                                    <td>{entry["Dates"]}</td>
                                     <td>{entry["Section"]}</td>
                                     <td>{entry["Row"]}</td>
                                     <td>{entry["Seats"]}</td>
