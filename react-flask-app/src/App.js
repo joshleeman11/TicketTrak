@@ -1,5 +1,7 @@
+import "bootstrap/dist/css/bootstrap.min.css";
+import { ProgressBar } from 'react-bootstrap'
 import "./App.css";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import DatePicker from "react-multi-date-picker";
 import "react-calendar/dist/Calendar.css";
 import _ from "lodash";
@@ -12,8 +14,10 @@ function App() {
         maxPrice: "",
         quantity: "",
         dates: [],
+        pageIndex: 1,
     });
     const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
     const [error, setError] = useState(null);
 
     const handleSearch = (event) => {
@@ -21,6 +25,7 @@ function App() {
         const updatedFilters = handleDates();
         console.log(updatedFilters.dates);
         setLoading(true);
+        setProgress(25);
         fetch("/search", {
             method: "POST",
             headers: {
@@ -36,15 +41,59 @@ function App() {
                 return res.json();
             })
             .then((data) => {
+                setProgress(75);
                 console.log(data);
                 const df = JSON.parse(data);
                 setDataframe(df);
                 setFilteredDataframe(df);
                 setLoading(false);
+                setProgress(100);
             })
             .catch((error) => {
                 setError(error);
                 setLoading(false);
+                setProgress(0);
+            });
+    };
+
+    const handleNextPage = (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setProgress(25);
+        fetch("/nextPage", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                pageIndex: filters.pageIndex + 1,
+                dates: filters.dates,
+            }),
+        })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                console.log(res);
+                return res.json();
+            })
+            .then((data) => {
+                setProgress(75);
+                console.log(data);
+                const newDf = JSON.parse(data);
+                setDataframe((prevDf) => [...prevDf, ...newDf]);
+                setFilteredDataframe((prevDf) => [...prevDf, ...newDf]);
+                setFilters((prevFilters) => ({
+                    ...prevFilters,
+                    pageIndex: prevFilters.pageIndex + 1,
+                }));
+                setLoading(false);
+                setProgress(100);
+            })
+            .catch((error) => {
+                setError(error);
+                setLoading(false);
+                setProgress(0);
             });
     };
 
@@ -110,7 +159,12 @@ function App() {
         <div className="App">
             <header className="App-header">
                 <h1>TicketTrak</h1>
-                {loading && <p>Loading...</p>}
+                {loading && (
+                    <div>
+                        <p>Loading...</p>
+                        <ProgressBar now={progress} animated/>
+                    </div>
+                )}
                 {!loading && (
                     <div>
                         <form onSubmit={handleSearch}>
@@ -167,6 +221,7 @@ function App() {
                         <button onClick={handleSortByPrice}>
                             Sort By Price
                         </button>
+                        <button onClick={handleNextPage}>Next Page</button>
                     </div>
                 )}
                 {error && <p>Error: {error.message}</p>}
